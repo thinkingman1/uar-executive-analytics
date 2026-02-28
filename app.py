@@ -4,7 +4,6 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 import textwrap
-from io import BytesIO
 
 st.set_page_config(page_title="UAR Executive Analytics", layout="wide")
 
@@ -54,6 +53,7 @@ THEMES = {
 
 # Default fallback is Light
 THEME = THEMES.get(theme_name, THEMES["Light"])
+METRIC_TEXT_COLOR = "#000000" if theme_name in ["Dark", "Slate", "Navy"] else THEME["fg"]
 
 st.markdown(
     f"""
@@ -69,7 +69,7 @@ st.markdown(
       div[data-testid="stRadio"] label,
       div[data-testid="stMetricLabel"] p,
       div[data-testid="stMetricValue"] {{
-        color: {THEME['fg']} !important;
+        color: {METRIC_TEXT_COLOR} !important;
       }}
       /* Make tables look cleaner on dark themes */
       div[data-testid="stDataFrame"] {{
@@ -125,15 +125,11 @@ def get_col_by_excel_letter(df: pd.DataFrame, letter: str):
     return df.columns[idx]
 
 
-@st.cache_data(show_spinner=False)
-def load_file_from_bytes(file_bytes: bytes, name: str) -> pd.DataFrame:
-    if name.endswith(".csv"):
-        return pd.read_csv(BytesIO(file_bytes))
-    return pd.read_excel(BytesIO(file_bytes))
-
-
 def load_file(file):
-    return load_file_from_bytes(file.getvalue(), file.name.lower())
+    name = file.name.lower()
+    if name.endswith(".csv"):
+        return pd.read_csv(file)
+    return pd.read_excel(file)
 
 
 def to_bool_series_any(s: pd.Series) -> pd.Series:
