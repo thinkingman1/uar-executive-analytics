@@ -63,7 +63,13 @@ st.markdown(
         color: {THEME['fg']};
       }}
       .stMarkdown, .stText, .stCaption, .stDataFrame {{
-        color: {THEME['fg']};
+        color: {THEME['fg']} !important;
+      }}
+      div[data-testid="stRadio"] label p,
+      div[data-testid="stRadio"] label,
+      div[data-testid="stMetricLabel"] p,
+      div[data-testid="stMetricValue"] {{
+        color: {THEME['fg']} !important;
       }}
       /* Make tables look cleaner on dark themes */
       div[data-testid="stDataFrame"] {{
@@ -636,31 +642,6 @@ with right:
     pie.update_layout(height=360, margin=dict(l=20, r=20, t=60, b=20))
     st.plotly_chart(pie, use_container_width=True)
     st.caption(f"Total identities: {total:,}")
-
-# =========================
-# Actor Distribution
-# =========================
-st.subheader("Actor Distribution")
-
-G = df[final_map["actor"]] if final_map.get("actor") else None
-
-if final_map.get("actor") is None:
-    st.info("Actor column not found in this file.")
-else:
-    g_series = G.fillna("NA").astype(str).str.strip()
-    g_counts = g_series.value_counts().reset_index()
-    g_counts.columns = ["Actor", "Count"]
-
-    top_n = 15
-    visible_df = g_counts.head(top_n)
-
-    bar = px.bar(visible_df, x="Actor", y="Count", title="Top 15 Actors by Count")
-    apply_plotly_theme(bar)
-    bar.update_layout(xaxis_tickangle=-45, height=420, margin=dict(l=40, r=40, t=60, b=120))
-    st.plotly_chart(bar, use_container_width=True)
-
-    with st.expander("View remaining actors"):
-        st.dataframe(g_counts.iloc[top_n:], use_container_width=True, hide_index=True, height=300)
 
 # =========================
 # Reassignment Behaviour
@@ -2074,3 +2055,28 @@ else:
         uniq_pivot = pd.concat([uniq_pivot, pd.DataFrame([total_row2])], ignore_index=True)
 
         st.dataframe(uniq_pivot, use_container_width=True, hide_index=True, height=420)
+
+# =========================
+# Actor Distribution (at end)
+# =========================
+st.divider()
+st.header("Actor Distribution")
+
+actor_dist_col = final_map.get("actor")
+if actor_dist_col is None:
+    st.info("Actor column not found in this file.")
+else:
+    actor_series = df[actor_dist_col].fillna("NA").astype(str).str.strip()
+    actor_counts = actor_series.value_counts().reset_index()
+    actor_counts.columns = ["Actor", "Count"]
+
+    top_n = 15
+    visible_df = actor_counts.head(top_n)
+
+    bar = px.bar(visible_df, x="Actor", y="Count", title="Top 15 Actors by Count")
+    apply_plotly_theme(bar)
+    bar.update_layout(xaxis_tickangle=-45, height=420, margin=dict(l=40, r=40, t=60, b=120))
+    st.plotly_chart(bar, use_container_width=True)
+
+    with st.expander("View remaining actors"):
+        st.dataframe(actor_counts.iloc[top_n:], use_container_width=True, hide_index=True, height=300)
